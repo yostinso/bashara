@@ -6,6 +6,7 @@ script_under_test=./dummy_script.sh
 
 
 init; (
+any_failure=0
 
 ok_result() {
     cat - | grep -q -- "-> OK"
@@ -15,6 +16,7 @@ fail_result() {
     cat - | grep -q -- "-> FAIL"
     return $?
 }
+
 print_success() {
     local res=$?
     local lineno=${BASH_LINENO[0]}
@@ -22,6 +24,7 @@ print_success() {
         printf "%-65s %-12s %4s\n" "$1" "(line $lineno)" "OK"
     else
         printf "%-65s %-12s %4s\n" "$1" "(line $lineno)" "FAILED"
+        any_failure=1
     fi
 }
 
@@ -91,4 +94,7 @@ expect_script 'to_take_arguments test_function' 'and_call_original my_function' 
 example_name="Spies on a function but doesn't replace \$?"
 expect_script 'to_take_arguments test_function' 'and_call_original my_function' 'to_print "my_function executed 1"' | ok_result ; print_success "$example_name"
 
-); cleanup
+exit $any_failure
+); any_failure=$?; cleanup
+
+exit $any_failure
