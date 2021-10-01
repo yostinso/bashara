@@ -92,7 +92,7 @@ example_name="Spies on a function and returns original"
 expect_script 'to_take_arguments test_function' 'and_call_original my_function' 'to_print "my_function executed"' | ok_result ; print_success "$example_name"
 
 example_name="Spies on a function but doesn't replace \$?"
-expect_script 'to_take_arguments test_function' 'and_call_original my_function' 'to_print "my_function executed 1"' | ok_result ; print_success "$example_name"
+expect_script 'to_take_arguments test_functions' 'and_call_original my_function' 'to_print "my_function executed 1"' | ok_result ; print_success "$example_name"
 
 exit $any_failure
 ); any_failure=$?; cleanup
