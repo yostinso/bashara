@@ -101,11 +101,14 @@ echo_pp() {
     done
 }
 
-to_take_arguments() {
+and_take_arguments() {
     # xhellcheck disable
     for arg in "$@"; do
         echo "take_args+=( \"$arg\" );"
     done
+}
+to_take_arguments() {
+    and_take_arguments "$@"
 }
 
 and_print() {
