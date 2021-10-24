@@ -266,7 +266,11 @@ execute_tests() {
         echo_debug "$(echo_indent "$trimmed_results" 4 "> ")"
         if [[ -n $debug ]]; then echo_indent "OK"; else echo " -> OK"; fi
     else
-        if [[ -n $debug ]]; then echo_indent "FAIL"; else echo " -> FAIL"; fi
+        if [[ -n $debug ]]; then
+            echo_indent "FAIL"
+        else
+            echo " -> FAIL [${BASH_SOURCE[2]}:${BASH_LINENO[1]}]"
+        fi
         if [[ -z $debug ]]; then echo ""; fi
         echo "$errmsg"
     fi
