@@ -97,7 +97,7 @@ echo_indent() {
 
 echo_pp() {
     for s in "$@"; do
-        echo -n "$s\\n"
+        printf '%s\n' "$s"
     done
 }
 
