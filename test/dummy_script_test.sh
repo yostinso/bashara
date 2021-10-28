@@ -21,4 +21,6 @@ init; (
 
     tmpfile=$(mktemp -p /tmp "test_stdout.XXX" --suffix ".txt")
     res=$(expect_script 'to_take_arguments test_function' 'and_print_to '"$tmpfile" && [[ $(cat "$tmpfile") =~ "my_function executed 1" ]]) && echo "$res -> OK" || echo "$res -> FAIL"
+    echo "TESTING123" > "$tmpfile"
+    expect_script 'to_take_arguments test_stdin' 'and_read_stdin_from '"$tmpfile" 'and_print "STDIN:.*TESTING123"'
 ); cleanup

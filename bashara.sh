@@ -125,6 +125,13 @@ to_print_to() {
     and_print_to "$@"
 }
 
+and_read_stdin_from() {
+    echo "read_stdin_from=\"$1\";"
+}
+to_read_stdin_from() {
+    and_read_stdin_from "$@"
+}
+
 # https://stackoverflow.com/questions/1203583/how-do-i-rename-a-bash-function
 and_call() {
     local method_name="$1" uuid
@@ -194,7 +201,7 @@ expect_script() {
 
 execute_tests() {
     # Overridden by eval below
-    local take_args=() print_matches=() print_to=""
+    local take_args=() print_matches=() print_to="" read_stdin_from=""
     local injections=() inject_expects=() should_call=()
 
     for var in "$@"; do
@@ -209,6 +216,7 @@ execute_tests() {
     cmd="$script_path ${take_args[*]}"
 
     desc=( "$(basename "$script_under_test")" )
+    if [[ -n "$read_stdin_from" ]]; then desc+=("should read STDIN from $read_stdin_from"); fi
     if [[ ${#should_call[@]} -gt 0 ]]; then desc+=("should call '$(format_args "${should_call[@]}")'"); fi
     if [[ ${#print_matches[@]} -gt 0 ]]; then desc+=("should print $( echo_pp "${print_matches[@]}" )"); fi
     if [[ ${#take_args[@]} -gt 0 ]]; then desc+=("take args ( $(format_args "${take_args[@]}") )"); fi
@@ -222,7 +230,11 @@ execute_tests() {
     done
 
     echo_debug $'\n'"  Running $cmd"
-    results=$("$script_path" "${take_args[@]}" 2>&1)
+    if [[ -n "$read_stdin_from" ]]; then
+        results=$("$script_path" "${take_args[@]}" < "$read_stdin_from" 2>&1)
+    else
+        results=$("$script_path" "${take_args[@]}" 2>&1)
+    fi
 
     failure=0
     errmsg=""

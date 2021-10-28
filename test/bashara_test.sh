@@ -100,6 +100,15 @@ example_name="Redirects output to a file"
 tmpfile=$(mktemp -p /tmp "test_stdout.XXX" --suffix ".txt")
 ( (expect_script 'to_take_arguments test_function' 'and_print_to '"$tmpfile" >/dev/null && [[ $(cat "$tmpfile") =~ "my_function executed 1" ]]) \
     && echo " -> OK" || echo " -> FAIL") | ok_result; print_success "$example_name"
+rm "$tmpfile"
+
+# to_read_stdin_from
+#  Read input from a file
+example_name="Reads input (stdin) from a file"
+tmpfile=$(mktemp -p /tmp "test_stdin.XXX" --suffix ".txt")
+echo "TESTING123" > "$tmpfile"
+expect_script 'to_take_arguments test_stdin' 'and_read_stdin_from '"$tmpfile" 'and_print "STDIN:.*TESTING123"' | ok_result ; print_success "$example_name"
+rm "$tmpfile"
 
 exit $any_failure
 ); any_failure=$?; cleanup
