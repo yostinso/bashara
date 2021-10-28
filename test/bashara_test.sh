@@ -94,6 +94,13 @@ expect_script 'to_take_arguments test_function' 'and_call_original my_function' 
 example_name="Spies on a function but doesn't replace \$?"
 expect_script 'to_take_arguments test_function' 'and_call_original my_function' 'to_print "my_function executed 1"' | ok_result ; print_success "$example_name"
 
+# to_print_to
+#  Redirects output to a file
+example_name="Redirects output to a file"
+tmpfile=$(mktemp -p /tmp "test_stdout.XXX" --suffix ".txt")
+( (expect_script 'to_take_arguments test_function' 'and_print_to '"$tmpfile" >/dev/null && [[ $(cat "$tmpfile") =~ "my_function executed 1" ]]) \
+    && echo " -> OK" || echo " -> FAIL") | ok_result; print_success "$example_name"
+
 exit $any_failure
 ); any_failure=$?; cleanup
 

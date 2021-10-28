@@ -118,6 +118,13 @@ to_print() {
     and_print "$@"
 }
 
+and_print_to() {
+    echo "print_to=\"$1\";"
+}
+to_print_to() {
+    and_print_to "$@"
+}
+
 # https://stackoverflow.com/questions/1203583/how-do-i-rename-a-bash-function
 and_call() {
     local method_name="$1" uuid
@@ -179,7 +186,7 @@ expect_script() {
 
     local args=()
     for var in "$@"; do
-        args+=( "$(eval "$var")" )
+        args+=( "$(eval "$var")" ) || exit 1
     done
     execute_tests "${args[@]}"
     return $?
@@ -187,7 +194,7 @@ expect_script() {
 
 execute_tests() {
     # Overridden by eval below
-    local take_args=() print_matches=()
+    local take_args=() print_matches=() print_to=""
     local injections=() inject_expects=() should_call=()
 
     for var in "$@"; do
@@ -205,6 +212,7 @@ execute_tests() {
     if [[ ${#should_call[@]} -gt 0 ]]; then desc+=("should call '$(format_args "${should_call[@]}")'"); fi
     if [[ ${#print_matches[@]} -gt 0 ]]; then desc+=("should print $( echo_pp "${print_matches[@]}" )"); fi
     if [[ ${#take_args[@]} -gt 0 ]]; then desc+=("take args ( $(format_args "${take_args[@]}") )"); fi
+    if [[ -n "$print_to" ]]; then desc+=("should print to $print_to"); fi
 
     local desc_count="${#desc[@]}"
     for ((i=0; i<desc_count; i++)); do
@@ -259,6 +267,10 @@ execute_tests() {
                 echo "$print_match_msg"
             )
         fi
+    fi
+
+    if [[ -n "$print_to" ]]; then
+        echo "$trimmed_results" > "$print_to"
     fi
 
     if [[ $failure -eq 0 ]]; then

@@ -15,7 +15,10 @@ init; (
             'and_print "ARG 2 = thr ee"' \
             'and_print "Finished"'
     expect_script 'to_take_arguments test_function' 'and_call my_function'
-    expect_script 'to_take_arguments test_function' 'and_call not_my_function'
+    expect_script 'to_take_arguments test_function' 'and_call not_my_function' # This should fail
     expect_script 'to_take_arguments test_function' 'and_call_original my_function' 'to_print "my_function executed"'
     expect_script 'to_take_arguments test_function' 'and_call_original my_function' 'to_print "my_function executed 1"'
+
+    tmpfile=$(mktemp -p /tmp "test_stdout.XXX" --suffix ".txt")
+    res=$(expect_script 'to_take_arguments test_function' 'and_print_to '"$tmpfile" && [[ $(cat "$tmpfile") =~ "my_function executed 1" ]]) && echo "$res -> OK" || echo "$res -> FAIL"
 ); cleanup
