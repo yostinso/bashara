@@ -5,9 +5,6 @@ source "$(dirname "${BASH_SOURCE[0]}")"/../bashara.sh
 script_under_test=./dummy_script.sh
 
 
-init; (
-any_failure=0
-
 ok_result() {
     cat - | grep -q -- "-> OK"
     return $?
@@ -27,6 +24,9 @@ print_success() {
         any_failure=1
     fi
 }
+init > /dev/null; (
+any_failure=0
+
 
 if [[ "$1" == "generate_docs" ]]; then
     print_success() { true; }
@@ -98,8 +98,12 @@ expect_script 'to_take_arguments test_function' 'and_call_original my_function' 
 #  Redirects output to a file
 example_name="Redirects output to a file"
 tmpfile=$(mktemp -p /tmp "test_stdout.XXX" --suffix ".txt")
+if [[ "$1" == "generate_docs" ]]; then
+    expect_script 'to_take_arguments test_function' 'and_print_to '"$tmpfile" | ok_result ; print_success "$example_name"
+else
 ( (expect_script 'to_take_arguments test_function' 'and_print_to '"$tmpfile" >/dev/null && [[ $(cat "$tmpfile") =~ "my_function executed 1" ]]) \
     && echo " -> OK" || echo " -> FAIL") | ok_result; print_success "$example_name"
+fi
 rm "$tmpfile"
 
 # to_read_stdin_from
@@ -111,6 +115,31 @@ expect_script 'to_take_arguments test_stdin' 'and_read_stdin_from '"$tmpfile" 'a
 rm "$tmpfile"
 
 exit $any_failure
-); any_failure=$?; cleanup
+); any_failure=$?; cleanup > /dev/null
+
+if [[ "$any_failure" -ne 0 ]]; then exit $any_failure; fi
+
+# new_tempfile / get_tempfile
+#  Helpers for creating a new tempfile and getting the filename of it
+if [[ "$1" == "generate_docs" ]]; then
+    echo '### Generate temp file'
+    echo '```sh'
+    # shellcheck disable=SC2016
+    echo 'init; new_tempfile; mytmp=$(get_tempfile); ( expect_script '\''to_read_stdin_from "'\''$mytmp'\''" ); cleanup'
+    echo '-> OK'
+    echo '```'
+else
+    example_name="Can't create a tempfile without initting"
+    ([[ $( new_tempfile; init; ) =~ "You didn't call init" ]] && echo " -> OK" || echo " -> FAIL") | ok_result ; print_success "$example_name"
+
+    example_name="Can create a tempfile"
+    init > /dev/null; new_tempfile > /dev/null; tmpf=$(get_tempfile)
+    if [[ -n "$tmpf" && -f "$tmpf" ]]; then echo " -> OK"; else echo " -> FAIL"; fi | ok_result; print_success "$example_name"
+
+    example_name="Can clean up a tempfile"
+    cleanup > /dev/null
+    if [[ ! -f "$tmpf" ]]; then echo " -> OK"; else echo " -> FAIL"; fi | ok_result; print_success "$example_name"
+fi
+
 
 exit $any_failure

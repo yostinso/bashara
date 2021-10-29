@@ -15,9 +15,19 @@ init; (
     # it should print help when bad arguments are given
     # expect_script "to_take_arguments derp" 'and_print "Help.*Unexpected.*derp"'
 ); cleanup
+
+# There are also a couple of helpers for temp files, you can use them like so:
+init
+new_tempfile
+mytmp=$(get_tempfile)
+(
+    expect_script 'to_read_stdin_from "'"$mytmp"'"'
+)
+cleanup
 EOF
 }
 
+tmpfiles=()
 init() {
     echo "Initializing..."
     local dirname
@@ -47,12 +57,17 @@ init() {
     # Rebuild the script
     cat "$orig_script_path" > "$script_path"
     bashara_initialized=1
+    tmpfiles=()
     echo ""
 }
 
 cleanup() {
+    bashara_initialized=""
     echo "Cleaning up..."
     rm "$script_path"
+    for tmpfile in "${tmpfiles[@]}"; do
+        rm "$tmpfile"
+    done
 }
 
 inject_spies() {
@@ -197,6 +212,22 @@ expect_script() {
     done
     execute_tests "${args[@]}"
     return $?
+}
+
+new_tempfile() {
+    if [[ -z "$bashara_initialized" ]]; then
+        echo $'\n'"You didn't call init before trying to create a temp file!"$'\n'
+        print_usage
+        exit
+    fi
+    local tmp
+    tmp=$(mktemp -p /tmp "test_tempfile.XXX" --suffix ".txt")
+    tmpfiles+=("$tmp")
+    echo "Created $tmp"
+}
+
+get_tempfile() {
+    echo "${tmpfiles[-1]}"
 }
 
 execute_tests() {

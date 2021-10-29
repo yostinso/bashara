@@ -69,6 +69,24 @@ expect_script 'to_take_arguments test_function' 'and_call_original my_function' 
 -> OK
 ```
 
+### Redirects output to a file
+```sh
+expect_script 'to_take_arguments test_function' 'and_print_to /tmp/test_stdout.KqT.txt'
+-> OK
+```
+
+### Reads input (stdin) from a file
+```sh
+expect_script 'to_take_arguments test_stdin' 'and_read_stdin_from /tmp/test_stdin.2Aj.txt' 'and_print "STDIN:.*TESTING123"'
+-> OK
+```
+
+### Generate temp file
+```sh
+init; new_tempfile; mytmp=$(get_tempfile); ( expect_script 'to_read_stdin_from "'$mytmp'" ); cleanup
+-> OK
+```
+
 ### Note
 All of the expectations can start with either `to_` or `and_` for readability.
 
