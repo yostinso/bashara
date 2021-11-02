@@ -223,7 +223,9 @@ new_tempfile() {
     local tmp
     tmp=$(mktemp -p /tmp "test_tempfile.XXX" --suffix ".txt")
     tmpfiles+=("$tmp")
-    echo "Created $tmp"
+    if [[ -n "$debug" ]]; then
+        echo "Created tempfile: $tmp"
+    fi
 }
 
 get_tempfile() {
